@@ -20,6 +20,9 @@ struct ooxml_zip_file
 {
 	char *filename;
 	size_t file_length;
+	uint64_t mtime;
+	uint64_t index;
+	
 	
 	unsigned char *data;
 	size_t cb_data;

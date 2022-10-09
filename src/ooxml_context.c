@@ -224,13 +224,20 @@ static int ooxml_get_file(struct ooxml_context *ooxml, int index, struct ooxml_z
 	memset(&file, 0, sizeof(file));
 	
 	zip_stat_t *stats = &priv->file_stats[index];
-	if(!stats->valid) {
-		fprintf(stderr, "error::ooxml_get_file_data(%s): invalid data.\n", stats->name);
+	if((stats->valid & ZIP_STAT_NAME) != ZIP_STAT_NAME) {
+		fprintf(stderr, "error::ooxml_get_file_data(index=%ld): invalid data(no filename).\n", (long)index);
+		return -1;
+	}
+	if((stats->valid & ZIP_STAT_SIZE) != ZIP_STAT_SIZE) {
+		fprintf(stderr, "error::ooxml_get_file_data(%s): invalid data(no size).\n", stats->name);
 		return -1;
 	}
 	
 	file.filename = strdup(stats->name);
 	file.file_length = stats->size;
+	
+	if(stats->valid & ZIP_STAT_MTIME) file.mtime = stats->mtime;
+	if(stats->valid & ZIP_STAT_INDEX) file.index = stats->index;
 	
 	if(fetch_data && (file.file_length > 0)) {
 		unsigned char *data = malloc(file.file_length + 1);
